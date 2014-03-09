@@ -1,11 +1,9 @@
 %final project
 
-% [xtable, ytable, ztable] = cylinder([4 4], 4);
-% 
-% table(1) = surface(xtable+2, ytable+4, ztable, 'FaceColor', 'g');
-% 
-% set(table(1));
+hold off; clear all; close all; clc;
+
 someAxes=axes('xlim',[0 9.32], 'ylim', [0 4.65], 'zlim', [0 2]);
+rotate3d on;
 grid on;
 view(3);
 axis equal;
@@ -16,35 +14,34 @@ zlabel('z');
 x = [0, 9.32, 9.32, 0, 0];
 y = [0, 0, 4.65, 4.65, 0];
 
-
-
 fill(x,y,[56/255 179/255 38/255]);
 
-zerovar = zeros(10);
+[xsph, ysph, zsph] = sphere(20);
 
-[xsph ysph zsph] = sphere(10);
+cueball = ball([2, 2, ball.radius], [0, 0, 0]);
+otherball = ball([4, 2, ball.radius], [-10, 0, 0]);
 
-cueball = surface(2+(xsph*.2),4.65/2+(ysph*.2),.13+(zsph*.2), zerovar);
+cueball_handle = surface(xsph,ysph,zsph);
+otherball_handle = surface(xsph,ysph,zsph);
 
-colormap(cueball, [1,1,1]);
+cueball_hg = hgtransform('parent', someAxes);
+set(cueball_handle, 'parent', cueball_hg);
+otherball_hg = hgtransform('parent', someAxes);
+set(otherball_handle, 'parent', otherball_hg);
+drawnow
 
-set(cueball);
-
-
-
-
-otherball = surface(6+(xsph*.2),4.65/2+(ysph*.2),.13+(zsph*.2), zerovar);
-
-colormap(otherball, [1,0,0]);
-
-set(otherball);
-
-
-
-
-
-
-
-
-
-
+for i = 0:0.001:1
+    cueball_translation = makehgtform('translate', cueball.position);
+    cueball_scaling = makehgtform('scale', cueball.radius);
+    set(cueball_hg, 'matrix', cueball_translation*cueball_scaling);
+    otherball_translation = makehgtform('translate', otherball.position);
+    otherball_scaling = makehgtform('scale', otherball.radius);
+    set(otherball_hg, 'matrix', otherball_translation*otherball_scaling);
+    
+    cueball.move(0.001, 0, 0, 9.32, 4.65, otherball);
+    otherball.move(0.001, 0, 0, 9.32, 4.65, cueball);
+    
+    a = i
+    
+    pause(0.015);
+end
