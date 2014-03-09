@@ -9,8 +9,11 @@ classdef ball < handle
     properties
         position
         velocity
-        weight=1;
-        radius=1;
+    end
+    properties (Constant)
+        %specifications as according to american pool
+        mass=170; %170 grams
+        radius=2.25/12; %2 1/4 inches in feet
         friction=1;
     end
     
@@ -22,8 +25,8 @@ classdef ball < handle
         
         %an intersection between two circles occurs when the distance
         %between the centers is not greater than the sum of their radii
-        function intersected = ball_intersection(obj, ball)
-            intersected = (obj.position(0)-ball.position(0))^2+(obj.position(1)-ball.position(1))^2 <= (obj.radius+ball.radius)^2;
+        function intersected = ball_intersection(obj, other)
+            intersected = (obj.position(1)-other.position(1))^2+(obj.position(2)-other.position(2))^2 <= (2*ball.radius)^2;
         end
         
         %simulates the movement of one of the balls
@@ -32,37 +35,38 @@ classdef ball < handle
             obj.position = obj.position + time_increment*obj.velocity;
             
             %check if the position goes beyond a wall boundary
-            if obj.position(0) < minx
-                obj.position(0) = minx;
-                obj.velocity(0) = -obj.velocity(0);
-            elseif obj.position(0) > maxx
-                obj.position(0) = maxx;
-                obj.velocity(0) = -obj.velocity(0);
+            if obj.position(1)-ball.radius < minx
+                obj.position(1) = minx+ball.radius;
+                obj.velocity(1) = -obj.velocity(1);
+            elseif obj.position(1)+ball.radius > maxx
+                obj.position(1) = maxx-ball.radius;
+                obj.velocity(1) = -obj.velocity(1);
             end
-            if obj.position(1) < miny
-                obj.position(1) = miny;
-                obj.velocity(1) = -obj.velocity(1);
-            elseif obj.position(1) > maxy
-                obj.position(1) = maxy;
-                obj.velocity(1) = -obj.velocity(1);
+            if obj.position(2)-ball.radius < miny
+                obj.position(2) = miny+ball.radius;
+                obj.velocity(2) = -obj.velocity(2);
+            elseif obj.position(2)+ball.radius > maxy
+                obj.position(2) = maxy-ball.radius;
+                obj.velocity(2) = -obj.velocity(2);
             end
             
             %check if there's been a ball-to-ball collision, whereupon
-            %apply the physics of an elastic collision
-            for ball = balls
-                if ball_intersection(ball)
-                    new_self_velocity = (obj.velocity*(obj.mass-ball.mass)-2*ball.mass*ball.velocity)/(obj.mass+ball.mass);
-                    ball.velocity = (ball.velocity*(ball.mass-obj.mass)-2*obj.mass*obj.velocity)/(obj.mass+ball.mass);
+            %apply the physics of an elastic collision - simplified to the
+            %case where masses are equivalent
+            for other = balls
+                if obj.ball_intersection(other)
+                    new_self_velocity = other.velocity;
+                    other.velocity = obj.velocity;
                     obj.velocity = new_self_velocity;
                 end
             end
             
             %applies friction
-            if obj.velocity(0) - obj.friction*time_increment >= 0
-                obj.velocity(0) = obj.velocity(0) - obj.friction*time_increment;
-            end
             if obj.velocity(1) - obj.friction*time_increment >= 0
                 obj.velocity(1) = obj.velocity(1) - obj.friction*time_increment;
+            end
+            if obj.velocity(2) - obj.friction*time_increment >= 0
+                obj.velocity(2) = obj.velocity(2) - obj.friction*time_increment;
             end
         end
         
