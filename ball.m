@@ -14,7 +14,7 @@ classdef ball < handle
         %specifications as according to american pool
         mass=170; %170 grams
         radius=2.25/12; %2 1/4 inches in feet
-        friction=1;
+        friction=0.001;
     end
     
     methods
@@ -62,15 +62,27 @@ classdef ball < handle
             end
             
             %applies friction
-            if obj.velocity(1) - obj.friction*time_increment >= 0
-                obj.velocity(1) = obj.velocity(1) - obj.friction*time_increment;
+            if obj.velocity(1)^2 ~= 0
+                if obj.velocity(1)^2 < 0.005
+                    obj.velocity(1) = 0;
+                elseif obj.velocity(1) > 0
+                    obj.velocity(1) = obj.velocity(1)-ball.friction;
+                else
+                    obj.velocity(1) = obj.velocity(1)+ball.friction;
+                end
             end
-            if obj.velocity(2) - obj.friction*time_increment >= 0
-                obj.velocity(2) = obj.velocity(2) - obj.friction*time_increment;
+            if obj.velocity(2)^2 ~= 0
+                if obj.velocity(2)^2 < 0.005
+                    obj.velocity(2) = 0;
+                elseif obj.velocity(2) > 0
+                    obj.velocity(2) = obj.velocity(2)-ball.friction;
+                else
+                    obj.velocity(2) = obj.velocity(2)+ball.friction;
+                end
             end
+            
         end
         
     end
     
 end
-

@@ -21,6 +21,8 @@ fill(x,y,[56/255 179/255 38/255]);
 cueball = ball([2, 2, ball.radius], [0, 0, 0]);
 otherball = ball([4, 2, ball.radius], [-10, 0, 0]);
 
+balls = [cueball, otherball];
+
 cueball_handle = surface(xsph,ysph,zsph);
 otherball_handle = surface(xsph,ysph,zsph);
 
@@ -30,7 +32,7 @@ otherball_hg = hgtransform('parent', someAxes);
 set(otherball_handle, 'parent', otherball_hg);
 drawnow
 
-for i = 0:0.001:1
+while sum([balls.velocity].^2) ~= 0
     cueball_translation = makehgtform('translate', cueball.position);
     cueball_scaling = makehgtform('scale', cueball.radius);
     set(cueball_hg, 'matrix', cueball_translation*cueball_scaling);
@@ -41,7 +43,6 @@ for i = 0:0.001:1
     cueball.move(0.001, 0, 0, 9.32, 4.65, otherball);
     otherball.move(0.001, 0, 0, 9.32, 4.65, cueball);
     
-    a = i
-    
     pause(0.015);
+    a = sum([balls.velocity].^2)
 end
