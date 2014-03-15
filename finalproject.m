@@ -1,7 +1,11 @@
-%final project
+%% Final Project - ENGR 180 II
+% Amndeep Singh Mann and William Bauer
+% Section 65 - Group 11
 
+%% Preparing the workspace
 hold off; clear all; close all; clc;
 
+%% Preparing the display
 someAxes=axes('xlim',[0 9.32], 'ylim', [0 4.65], 'zlim', [0 2]);
 rotate3d on;
 grid on;
@@ -12,12 +16,11 @@ xlabel('x');
 ylabel('y');
 zlabel('z');
 
-x = [0, 9.32, 9.32, 0, 0];
-y = [0, 0, 4.65, 4.65, 0];
-
+%% Preparing the billiard table
 table = imread('board.png');
 surf([0, 9.32; 0, 9.32], [0, 0; 4.65, 4.65], [0, 0; 0, 0], 'CData', table, 'FaceColor', 'texturemap');
 
+%% Receiving user input
 disp('You will be asked to provide certain input, please make sure to keep everything in the appropriate bounds.');
 disp('The table has the dimensions of 9.32''x4.65'', so please make sure the balls are well within them.');
 disp('Try not to stretch reality too far with the velocities of the balls.');
@@ -25,6 +28,7 @@ ball8 = ball([input('x-pos of the 8 ball: '), input('y-pos of the 8 ball: '), ba
 ballc = ball([input('x-pos of the cue ball: '), input('y-pos of the cue ball: '), ball.radius], [input('vx of the cue ball: '), input('vy of the cue ball: '), 0]);
 balls = [ball8, ballc];
 
+%% Preparing ball graphics
 ball8_graphics_rgb = imread('magic 8 ball 2.png');
 [ball8_ind, ball8_map] = rgb2ind(ball8_graphics_rgb, 256);
 ballc_graphics_rgb = imread('drexel logo.jpg');
@@ -44,15 +48,29 @@ set(ball8_handle, 'parent', ball8_hg);
 ballc_hg = hgtransform('parent', someAxes);
 set(ballc_handle, 'parent', ballc_hg);
 drawnow
+
+%% Simulation code
 ball8_angle_change = 0;
 ballc_angle_change = 0;
+% while the balls exist (as we delete them once they fall in a pocket) and
+% as long as the balls are actually moving, keep on running the simulation
 while (ball8.isvalid() || ballc.isvalid()) && sum([balls.velocity].^2) ~= 0
+    % as the simulation can go on without having both balls, you only want
+    % to simulate the balls that exist
     balls_in_simulation = {};
     
+    % since the balls are the default spheres, this takes them to where
+    % they need to be, scales them, and rotates them perpendicular to the
+    % direction of their velocity in order to simulate the rotating effect
+    % (however, whenever the velocity has a change due to a collision, then
+    % the rotation has a jump since it does not keep track of the previous
+    % direction of movement)
     if ball8.isvalid()
         ball8_translation = makehgtform('translate', ball8.position);
         ball8_scaling = makehgtform('scale', ball8.radius);
         ball8_rotating = makehgtform('axisrotate', [-ball8.velocity(2), ball8.velocity(1), ball8.velocity(3)], ball8_angle_change);
+        % if the ball isn't moving, then makehgtform returns a matrix that
+        % contains NaNs
         if(sum(ball8.velocity) == 0)
             ball8_rotating = [1, 0, 0, 0; 0, 1, 0, 0; 0, 0, 1, 0; 0, 0, 0, 1];
         end
@@ -71,8 +89,12 @@ while (ball8.isvalid() || ballc.isvalid()) && sum([balls.velocity].^2) ~= 0
         balls_in_simulation{length(balls_in_simulation)+1} = ballc;
     end
     
+    % 0.001 was a timelapse that had pretty good results - small enough
+    % that there were no major physics distortions, large enough that
+    % calculation time was not a factor in slowing it down
     ball.move(0.001, 0, 0, 9.32, 4.65, [balls_in_simulation{:}]);
     
+    % if a ball falls in a pocket, then it is deleted from the simulation
     for xpocket = [0, 9.32/2, 9.32]
         for ypocket = [0, 4.65]
             if ball8.isvalid() && ball.ball_in_pocket(ball8, xpocket, ypocket, 0.1)
@@ -96,6 +118,7 @@ while (ball8.isvalid() || ballc.isvalid()) && sum([balls.velocity].^2) ~= 0
         end
     end
     
+    % updating the angle appearance for the rotation code above
     if ball8.isvalid()
         ball8_angle_change = ball8_angle_change+0.003*sum(ball8.velocity.*ball8.velocity)^0.5;
     end
@@ -103,5 +126,7 @@ while (ball8.isvalid() || ballc.isvalid()) && sum([balls.velocity].^2) ~= 0
         ballc_angle_change = ballc_angle_change+0.003*sum(ballc.velocity.*ballc.velocity)^0.5;
     end
     
+    % like with the time lapse, this value just worked out to be really
+    % good at not being too skippy or too fast to understand
     pause(0.015);
 end
