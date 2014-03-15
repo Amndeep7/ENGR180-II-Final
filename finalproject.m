@@ -29,18 +29,31 @@ ballc = ball([input('x-pos of the cue ball: '), input('y-pos of the cue ball: ')
 balls = [ball8, ballc];
 
 %% Preparing ball graphics
+% rgb2ind takes each color in the image and assigns it to a value in a
+% list called the map.  The image's color for each pixel is then an index
+% into the map.
 ball8_graphics_rgb = imread('magic 8 ball 2.png');
 [ball8_ind, ball8_map] = rgb2ind(ball8_graphics_rgb, 256);
 ballc_graphics_rgb = imread('drexel logo.jpg');
 [ballc_ind, ballc_map] = rgb2ind(ballc_graphics_rgb, 256);
 
+% The colormap is just a list of all of those colors
 colormap([ball8_map; ballc_map]);
 
-[xsph, ysph, zsph] = sphere(20);
+% The sphere object that is used to describe both of the balls in the
+% simulation
+[xsph, ysph, zsph] = sphere(100);
 
+% Creates handles for the surfaces of the balls.  They both use the
+% texturemap as described by the colormap to "color" themselves.  However,
+% the cue ball will not be colored correctly as it will index values that
+% are in the colormap of the 8ball.
 ball8_handle = surface(xsph, ysph, zsph, flipud(ball8_ind), 'FaceColor', 'texturemap', 'EdgeColor', 'none', 'CDataMapping', 'direct');
 ballc_handle = surface(xsph, ysph, zsph, flipud(ballc_ind), 'FaceColor', 'texturemap', 'EdgeColor', 'none', 'CDataMapping', 'direct');
 
+% To counteract this problem, the cdata (i.e. the indexed color values used
+% in the graphic) for the cueball will be incremented so that they will 
+% point to values in the range of colormap data describing the cueball.  
 set(ballc_handle, 'CData', get(ballc_handle, 'CData')+length(ball8_map));
 
 ball8_hg = hgtransform('parent', someAxes);
